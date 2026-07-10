@@ -1,0 +1,209 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #F8F9FB;
+  --color-surface: #FFFFFF;
+  --color-ink: #16233F;
+  --color-ink-muted: #5B6472;
+  --color-accent-gold: #C08A2E;
+  --color-accent-emerald: #2F7A5C;
+  --color-line: #E3E6EC;
+
+  --font-serif: "Fraunces", Georgia, serif;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", Courier, monospace;
+}
+
+:root {
+  --color-bg: #F8F9FB;
+  --color-surface: #FFFFFF;
+  --color-ink: #16233F;
+  --color-ink-muted: #5B6472;
+  --color-accent-gold: #C08A2E;
+  --color-accent-emerald: #2F7A5C;
+  --color-line: #E3E6EC;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom layout resets */
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+
+/* Leaflet maps styling override */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Timeline vertical thread line animation */
+@keyframes thread-grow {
+  from {
+    height: 0%;
+  }
+  to {
+    height: 100%;
+  }
+}
+
+.thread-line-anim {
+  animation: thread-grow 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Page title typography style */
+.font-display {
+  font-family: "Fraunces", Georgia, serif;
+}
+
+/* Ledgers & stats typography style */
+.font-data {
+  font-family: "IBM Plex Mono", Courier, monospace;
+}
+
+/* Clean Fade-In Scale transition (replaces the slide-up transition) */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.975);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scroll-up {
+  animation: fadeInScale 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Automatic Ken Burns panning & zoom effect for cinematic backgrounds */
+@keyframes kenBurns {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  50% {
+    transform: scale(1.08) translate(-1%, -0.5%);
+  }
+  100% {
+    transform: scale(1) translate(0, 0);
+  }
+}
+
+.animate-ken-burns {
+  animation: kenBurns 30s ease-in-out infinite;
+}
+
+/* 3D Tilt Card & Interactive Radial Glow */
+.tilt-card {
+  transition: transform 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+
+.tilt-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    400px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+    rgba(255, 255, 255, 0.1),
+    transparent 60%
+  );
+  z-index: 2;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  opacity: 0;
+}
+
+.tilt-card:hover::before {
+  opacity: 1;
+}
+
+.tilt-card-gold::before {
+  background: radial-gradient(
+    400px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+    rgba(192, 138, 46, 0.15),
+    transparent 60%
+  );
+}
+
+/* Floating animated glassmorphic background spheres */
+@keyframes float1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(40px, -60px) scale(1.1);
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.9);
+  }
+}
+@keyframes float2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-60px, 50px) scale(1.15);
+  }
+}
+
+.animate-float-1 {
+  animation: float1 20s ease-in-out infinite;
+}
+
+.animate-float-2 {
+  animation: float2 24s ease-in-out infinite;
+}
+
+/* Dashboard Aurora background spots */
+.dashboard-aurora-bg {
+  position: relative;
+  background-color: var(--color-bg);
+}
+
+.dashboard-aurora-bg::before,
+.dashboard-aurora-bg::after {
+  content: "";
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  filter: blur(160px);
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.05; /* extremely clean and faint */
+  mix-blend-mode: multiply;
+}
+
+/* Gold orb top right */
+.dashboard-aurora-bg::before {
+  background-color: var(--color-accent-gold);
+  top: -10%;
+  right: -5%;
+  animation: float1 25s ease-in-out infinite alternate;
+}
+
+/* Emerald orb bottom left */
+.dashboard-aurora-bg::after {
+  background-color: var(--color-accent-emerald);
+  bottom: -10%;
+  left: 5%;
+  animation: float2 30s ease-in-out infinite alternate;
+}
