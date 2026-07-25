@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { GraduationCap, Award, Search, Mail, ArrowRight, UserCheck, X, Check } from "lucide-react";
-import API_BASE from "../config";
+import API_BASE, { getImageUrl } from "../config";
 
 export default function Mentorship({ setView, currentUser }) {
   const [mentors, setMentors] = useState([]);
@@ -132,7 +132,7 @@ export default function Mentorship({ setView, currentUser }) {
                 <div className="flex items-center gap-3.5 mb-4">
                   {mentor.photo_url ? (
                     <img
-                      src={mentor.photo_url}
+                      src={getImageUrl(mentor.photo_url)}
                       alt={mentor.name}
                       className="w-12 h-12 rounded-full border border-line object-cover"
                     />

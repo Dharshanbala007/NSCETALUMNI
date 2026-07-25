@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { departments } from "../data/mockAlumni";
 import { Star, Award, Building } from "lucide-react";
+import { getImageUrl } from "../config";
 
 export default function HallOfFame({ mockAlumni }) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -77,7 +78,7 @@ export default function HallOfFame({ mockAlumni }) {
                   <div className="relative mb-4">
                     <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-accent-gold/50 mx-auto">
                       {alumni.photo_url ? (
-                        <img src={alumni.photo_url} alt={alumni.name} className="w-full h-full object-cover" />
+                        <img src={getImageUrl(alumni.photo_url)} alt={alumni.name} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full bg-line flex items-center justify-center font-display font-bold text-2xl text-ink">
                           {alumni.name.charAt(0)}

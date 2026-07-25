@@ -8,6 +8,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
 import db from './db.js';
+import { runImport } from './importExcel.js';
 import { sendEmail } from './utils/email.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -24,7 +25,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'nscet_secret_key_123';
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:4173',
-  process.env.FRONTEND_URL, // Set this in Render env vars to your Cloudflare Pages URL
+  'https://nscet-alumni.pages.dev',
+  process.env.FRONTEND_URL,
 ].filter(Boolean);
 
 app.use(cors({
@@ -1248,7 +1250,23 @@ app.post('/api/mentorship/request', async (req, res) => {
   }
 });
 
+// Serve static assets from frontend dist build if present (for single-URL deployment)
+const distPath = path.join(__dirname, '..', 'dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+      return next();
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
+
 // Start listening
 app.listen(PORT, () => {
   console.log(`🚀 [Server] Express backend API running on port ${PORT}`);
+  // Auto-seed database if empty (safe non-destructive check)
+  runImport({ forceReset: false }).catch(err => {
+    console.error('⚠️ [Server Auto-Seed] Error checking database seed status:', err.message);
+  });
 });

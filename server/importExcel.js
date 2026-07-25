@@ -56,8 +56,9 @@ function getCoordinatesForCity(city) {
   return { lat: 10.7870 + rnd(), lng: 78.6984 + rnd() };
 }
 
-async function runImport() {
-  console.log('🏁 [Excel Import] Starting database setup and data ingestion...');
+async function runImport(options = {}) {
+  const forceReset = options.forceReset !== undefined ? options.forceReset : false;
+  console.log(`🏁 [Excel Import] Starting database setup and data ingestion (forceReset: ${forceReset})...`);
 
   // Wait for the db.js async connection check to complete
   await new Promise(resolve => setTimeout(resolve, 1000));
@@ -69,16 +70,30 @@ async function runImport() {
       const schemaSql = fs.readFileSync(sqlPath, 'utf8');
       await db.pool.query(schemaSql);
       
-      // Reset tables to reload with coordinates schema
-      await db.pool.query('TRUNCATE TABLE users CASCADE');
-      await db.pool.query('TRUNCATE TABLE alumni CASCADE');
-      console.log('✔️  [Database] Tables cleared and verified in PostgreSQL.');
+      if (forceReset) {
+        // Reset tables to reload with coordinates schema
+        await db.pool.query('TRUNCATE TABLE users CASCADE');
+        await db.pool.query('TRUNCATE TABLE alumni CASCADE');
+        console.log('✔️  [Database] Tables cleared and verified in PostgreSQL.');
+      } else {
+        // Check if database already has alumni data
+        const countRes = await db.pool.query('SELECT COUNT(*) FROM alumni');
+        const count = parseInt(countRes.rows[0].count, 10);
+        if (count > 0) {
+          console.log(`✔️  [Database] PostgreSQL already contains ${count} alumni records. Skipping import.`);
+          return;
+        }
+      }
     } catch (err) {
       console.error('❌ [Database] Error running schema.sql:', err.message);
     }
   } else {
-    // Reset local fallback database
     const memoryDb = db.getMemoryDb();
+    if (!forceReset && memoryDb.alumni && memoryDb.alumni.length > 0) {
+      console.log(`✔️  [DB Fallback] Local memory DB already has ${memoryDb.alumni.length} records. Skipping import.`);
+      return;
+    }
+    // Reset local fallback database if forceReset
     memoryDb.alumni = [];
     memoryDb.users = [
       {
@@ -261,7 +276,7 @@ async function runImport() {
 }
 
 if (process.argv[1] && process.argv[1].endsWith('importExcel.js')) {
-  runImport().then(() => {
+  runImport({ forceReset: true }).then(() => {
     process.exit(0);
   });
 }

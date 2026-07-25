@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Calendar, Video, Clock, MonitorPlay, Users, ArrowRight, ExternalLink, Plus, X } from "lucide-react";
-import API_BASE from "../config";
+import API_BASE, { getImageUrl } from "../config";
 
 export default function Contributions({ currentUser }) {
   const [contributions, setContributions] = useState([]);
@@ -90,7 +90,7 @@ export default function Contributions({ currentUser }) {
       <div className="pt-4 border-t border-line flex items-center gap-4">
         <div className="w-10 h-10 rounded-full bg-line overflow-hidden shrink-0 border border-line">
           {c.photo_url ? (
-            <img src={c.photo_url} alt={c.name} className="w-full h-full object-cover" />
+            <img src={getImageUrl(c.photo_url)} alt={c.name} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center font-display font-bold text-ink bg-bg">
               {c.name.charAt(0)}

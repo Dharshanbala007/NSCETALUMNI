@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Image as ImageIcon, Filter } from "lucide-react";
-import API_BASE from "../config";
+import API_BASE, { getImageUrl } from "../config";
 
 export default function EventGallery() {
   const [gallery, setGallery] = useState([]);
@@ -69,7 +69,7 @@ export default function EventGallery() {
           <div key={item.id} className="break-inside-avoid relative group rounded-md overflow-hidden bg-surface border border-line cursor-pointer shadow-sm tilt-card">
             <div className="relative aspect-auto">
               <img 
-                src={item.image_url} 
+                src={getImageUrl(item.image_url)} 
                 alt={item.title} 
                 className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out"
                 loading="lazy"

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Search, Briefcase, Globe, Users, ArrowRight, Award, MapPin } from "lucide-react";
 import { HorizontalThread } from "../components/ThreadConnector";
 import HallOfFame from "../components/HallOfFame";
+import { getImageUrl } from "../config";
 
 export default function Home({ setView, setFilterSearch, setFilterDept, mockAlumni, currentUser, onRegisterClick }) {
   const [query, setQuery] = useState("");
@@ -191,7 +192,7 @@ export default function Home({ setView, setFilterSearch, setFilterDept, mockAlum
                 <div className="flex items-center gap-3 mb-4">
                   {alumnus.photo_url ? (
                     <img 
-                      src={alumnus.photo_url} 
+                      src={getImageUrl(alumnus.photo_url)} 
                       alt={alumnus.name}
                       className="w-12 h-12 rounded-full border border-line object-cover"
                     />

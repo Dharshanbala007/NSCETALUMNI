@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, SlidersHorizontal, MapPin, Award, CheckCircle2, CircleOff, X, Briefcase } from "lucide-react";
 import { departments } from "../data/mockAlumni";
+import { getImageUrl } from "../config";
 
 export default function Directory({ setView, filterSearch, setFilterSearch, filterDept, setFilterDept, mockAlumni }) {
   const [search, setSearch] = useState("");
@@ -419,7 +420,7 @@ export default function Directory({ setView, filterSearch, setFilterSearch, filt
                     <div className="flex items-center gap-3.5 mb-3.5">
                       {alumnus.photo_url ? (
                         <img
-                          src={alumnus.photo_url}
+                          src={getImageUrl(alumnus.photo_url)}
                           alt={alumnus.name}
                           className="w-12 h-12 rounded-full border border-line object-cover"
                         />

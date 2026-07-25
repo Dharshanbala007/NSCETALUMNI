@@ -12,15 +12,20 @@ const __dirname = path.dirname(__filename);
 // Load env configuration
 dotenv.config({ path: path.join(__dirname, '.env') });
 
-const config = {
-  host: process.env.PGHOST || 'localhost',
-  port: parseInt(process.env.PGPORT || '5432'),
-  user: process.env.PGUSER || 'postgres',
-  password: process.env.PGPASSWORD || 'postgres',
-  database: process.env.PGDATABASE || 'nscet_alumni',
-};
+const config = process.env.DATABASE_URL 
+  ? { 
+      connectionString: process.env.DATABASE_URL, 
+      ssl: process.env.DATABASE_URL.includes('localhost') || process.env.DATABASE_URL.includes('127.0.0.1') ? false : { rejectUnauthorized: false } 
+    }
+  : {
+      host: process.env.PGHOST || 'localhost',
+      port: parseInt(process.env.PGPORT || '5432'),
+      user: process.env.PGUSER || 'postgres',
+      password: process.env.PGPASSWORD || 'postgres',
+      database: process.env.PGDATABASE || 'nscet_alumni',
+    };
 
-console.log(`[Database] Attempting connection to PostgreSQL at ${config.host}:${config.port}...`);
+console.log(`[Database] Attempting connection to PostgreSQL (${process.env.DATABASE_URL ? 'via DATABASE_URL' : `${config.host}:${config.port}`})...`);
 
 const pool = new Pool(config);
 
