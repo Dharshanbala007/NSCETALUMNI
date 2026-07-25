@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { GraduationCap, Award, Search, Mail, ArrowRight, UserCheck, X, Check } from "lucide-react";
+import API_BASE from "../config";
 
 export default function Mentorship({ setView, currentUser }) {
   const [mentors, setMentors] = useState([]);
@@ -11,7 +12,7 @@ export default function Mentorship({ setView, currentUser }) {
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    fetch('/api/mentorship')
+    fetch(`${API_BASE}/api/mentorship`)
       .then(res => res.json())
       .then(data => {
         setMentors(Array.isArray(data) ? data : []);
@@ -34,7 +35,7 @@ export default function Mentorship({ setView, currentUser }) {
     }
 
     try {
-      const res = await fetch('/api/mentorship/request', {
+      const res = await fetch(`${API_BASE}/api/mentorship/request`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

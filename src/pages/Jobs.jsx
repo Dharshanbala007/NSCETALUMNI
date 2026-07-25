@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Search, MapPin, Briefcase, UserCheck, Plus, X, Send, Check, FileText } from "lucide-react";
+import API_BASE from "../config";
 
 export default function Jobs({ currentUser }) {
   const [jobs, setJobs] = useState([]);
@@ -8,7 +9,7 @@ export default function Jobs({ currentUser }) {
   const [selectedType, setSelectedType] = useState("All");
   
   useEffect(() => {
-    fetch('/api/jobs')
+    fetch(`${API_BASE}/api/jobs`)
       .then(res => res.json())
       .then(data => {
         setJobs(Array.isArray(data) ? data : []);
@@ -62,7 +63,7 @@ export default function Jobs({ currentUser }) {
     };
 
     try {
-      const res = await fetch('/api/jobs', {
+      const res = await fetch(`${API_BASE}/api/jobs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -92,7 +93,7 @@ export default function Jobs({ currentUser }) {
     }
 
     try {
-      const res = await fetch('/api/jobs/referral', {
+      const res = await fetch(`${API_BASE}/api/jobs/referral`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -134,7 +135,7 @@ export default function Jobs({ currentUser }) {
     formData.append("resume", file);
 
     try {
-      const res = await fetch("/api/jobs/parse-resume", {
+      const res = await fetch(`${API_BASE}/api/jobs/parse-resume`, {
         method: "POST",
         body: formData
       });

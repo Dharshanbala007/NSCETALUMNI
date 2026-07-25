@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Calendar, Video, Clock, MonitorPlay, Users, ArrowRight, ExternalLink, Plus, X } from "lucide-react";
+import API_BASE from "../config";
 
 export default function Contributions({ currentUser }) {
   const [contributions, setContributions] = useState([]);
@@ -7,7 +8,7 @@ export default function Contributions({ currentUser }) {
   const [showModal, setShowModal] = useState(false);
 
   const fetchContributions = () => {
-    fetch("/api/alumni-contributions")
+    fetch(`${API_BASE}/api/alumni-contributions`)
       .then(res => res.json())
       .then(data => {
         setContributions(data);
@@ -29,7 +30,7 @@ export default function Contributions({ currentUser }) {
     const payload = Object.fromEntries(formData.entries());
 
     try {
-      const res = await fetch("/api/alumni/contributions", {
+      const res = await fetch(`${API_BASE}/api/alumni/contributions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

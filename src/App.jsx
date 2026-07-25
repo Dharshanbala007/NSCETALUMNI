@@ -13,6 +13,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Gallery from "./pages/Gallery";
 import Contributions from "./pages/Contributions";
+import API_BASE from "./config";
 import EventGallery from "./pages/EventGallery";
 import RegistrationModal from "./components/RegistrationModal";
 import { User, LogIn, LogOut, Shield, Check, AlertCircle, X, ArrowUp, CheckCircle, MapPin } from "lucide-react";
@@ -120,7 +121,7 @@ export default function App() {
     const fetchAlumni = async () => {
       try {
         console.log("[App] Syncing records from backend API...");
-        const response = await fetch("/api/alumni");
+        const response = await fetch(`${API_BASE}/api/alumni`);
         if (response.ok) {
           const data = await response.json();
           if (data && data.length > 0) {
@@ -173,7 +174,7 @@ export default function App() {
       : { name: alumniName, password: alumniPassword, loginType: "alumni" };
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -294,7 +295,7 @@ export default function App() {
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     try {
-      const response = await fetch("/api/alumni/update-geo", {
+      const response = await fetch(`${API_BASE}/api/alumni/update-geo`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

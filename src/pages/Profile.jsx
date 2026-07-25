@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ArrowLeft, Award, MapPin, Mail, Phone, Calendar, Heart, Shield, GraduationCap, X, Check } from "lucide-react";
+import API_BASE from "../config";
 import { VerticalThread, ThreadNode } from "../components/ThreadConnector";
 
 const LinkedinIcon = (props) => (
@@ -78,7 +79,7 @@ export default function Profile({ setView, mockAlumni, currentUser, setMockAlumn
     }
 
     try {
-      const response = await fetch("/api/alumni/edit-request", {
+      const response = await fetch(`${API_BASE}/api/alumni/edit-request`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("jwt_token")}`

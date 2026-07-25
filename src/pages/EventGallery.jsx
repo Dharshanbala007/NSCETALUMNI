@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Image as ImageIcon, Filter } from "lucide-react";
+import API_BASE from "../config";
 
 export default function EventGallery() {
   const [gallery, setGallery] = useState([]);
@@ -7,7 +8,7 @@ export default function EventGallery() {
   const [activeCategory, setActiveCategory] = useState("All");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/event-gallery")
+    fetch(`${API_BASE}/api/event-gallery`)
       .then(res => res.json())
       .then(data => {
         setGallery(data);

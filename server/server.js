@@ -20,7 +20,24 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'nscet_secret_key_123';
 
-app.use(cors());
+// CORS: Allow Cloudflare Pages frontend and local dev
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+  process.env.FRONTEND_URL, // Set this in Render env vars to your Cloudflare Pages URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    // Allow any .pages.dev subdomain (Cloudflare Pages)
+    if (origin.endsWith('.pages.dev')) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(null, true); // Allow all for now; tighten in production
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 // Serve static uploads directory

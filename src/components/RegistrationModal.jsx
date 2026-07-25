@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { X, Check } from "lucide-react";
+import API_BASE from "../config";
 
 export default function RegistrationModal({ onClose }) {
   const [formData, setFormData] = useState({
@@ -27,7 +28,7 @@ export default function RegistrationModal({ onClose }) {
     setError("");
 
     try {
-      const response = await fetch("/api/alumni/register", {
+      const response = await fetch(`${API_BASE}/api/alumni/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)

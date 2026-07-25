@@ -22,6 +22,7 @@ import {
   Video
 } from "lucide-react";
 import { departments } from "../data/mockAlumni";
+import API_BASE from "../config";
 
 export default function Admin({ mockAlumni, setMockAlumni, startEditGeo }) {
   const [activeTab, setActiveTab] = useState("queue"); // queue, all, placed, register, import, editRequests
@@ -40,7 +41,7 @@ export default function Admin({ mockAlumni, setMockAlumni, startEditGeo }) {
   const fetchEditRequests = async () => {
     setIsLoadingRequests(true);
     try {
-      const res = await fetch("/api/admin/edit-requests", {
+      const res = await fetch(`${API_BASE}/api/admin/edit-requests`, {
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("jwt_token")}`
         }
@@ -59,7 +60,7 @@ export default function Admin({ mockAlumni, setMockAlumni, startEditGeo }) {
   const fetchPendingRegistrations = async () => {
     setIsLoadingPending(true);
     try {
-      const res = await fetch("/api/admin/pending-registrations", {
+      const res = await fetch(`${API_BASE}/api/admin/pending-registrations`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` }
       });
       if (res.ok) {
@@ -76,7 +77,7 @@ export default function Admin({ mockAlumni, setMockAlumni, startEditGeo }) {
   const fetchPendingContributions = async () => {
     setIsLoadingContribs(true);
     try {
-      const res = await fetch("/api/admin/pending-contributions", {
+      const res = await fetch(`${API_BASE}/api/admin/pending-contributions`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` }
       });
       if (res.ok) {
@@ -98,7 +99,7 @@ export default function Admin({ mockAlumni, setMockAlumni, startEditGeo }) {
 
   const handleModerateEditRequest = async (requestId, action, pendingData, alumniId) => {
     try {
-      const res = await fetch("/api/admin/edit-requests/moderate", {
+      const res = await fetch(`${API_BASE}/api/admin/edit-requests/moderate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -193,7 +194,7 @@ export default function Admin({ mockAlumni, setMockAlumni, startEditGeo }) {
     }
     
     try {
-      await fetch("/api/alumni/moderate", {
+      await fetch(`${API_BASE}/api/alumni/moderate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -210,7 +211,7 @@ export default function Admin({ mockAlumni, setMockAlumni, startEditGeo }) {
     setPendingAlumni(prev => prev.filter(a => a.id !== id));
     
     try {
-      await fetch("/api/alumni/moderate", {
+      await fetch(`${API_BASE}/api/alumni/moderate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1311,7 +1312,7 @@ export default function Admin({ mockAlumni, setMockAlumni, startEditGeo }) {
                         <button
                           onClick={async () => {
                             try {
-                              const res = await fetch("/api/admin/moderate-contribution", {
+                              const res = await fetch(`${API_BASE}/api/admin/moderate-contribution`, {
                                 method: "POST",
                                 headers: {
                                   "Content-Type": "application/json",
@@ -1329,7 +1330,7 @@ export default function Admin({ mockAlumni, setMockAlumni, startEditGeo }) {
                         <button
                           onClick={async () => {
                             try {
-                              const res = await fetch("/api/admin/moderate-contribution", {
+                              const res = await fetch(`${API_BASE}/api/admin/moderate-contribution`, {
                                 method: "POST",
                                 headers: {
                                   "Content-Type": "application/json",
@@ -1367,7 +1368,7 @@ export default function Admin({ mockAlumni, setMockAlumni, startEditGeo }) {
                   e.preventDefault();
                   const formData = new FormData(e.target);
                   try {
-                    const res = await fetch("/api/admin/gallery", {
+                    const res = await fetch(`${API_BASE}/api/admin/gallery`, {
                       method: "POST",
                       headers: {
                         "Authorization": `Bearer ${localStorage.getItem("jwt_token")}`
