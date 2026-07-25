@@ -42,6 +42,16 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Endpoint to force trigger excel seeding
+app.get('/api/seed-excel', async (req, res) => {
+  try {
+    await runImport({ forceReset: true });
+    res.json({ success: true, message: 'Successfully seeded database with 450 alumni records!' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Serve static uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

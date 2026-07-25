@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import bcrypt from 'bcryptjs';
 import { fileURLToPath } from 'url';
-import db from './db.js';
+import db, { waitForDbInit } from './db.js';
 import { mockAlumni } from '../src/data/mockAlumni.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -61,7 +61,7 @@ async function runImport(options = {}) {
   console.log(`🏁 [Excel Import] Starting database setup and data ingestion (forceReset: ${forceReset})...`);
 
   // Wait for the db.js async connection check to complete
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await waitForDbInit();
 
   // 1. Initialize Tables (Run schema.sql if Postgres is connected)
   if (db.isPostgres()) {

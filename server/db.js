@@ -32,20 +32,26 @@ const pool = new Pool(config);
 // A simple indicator if postgres connection succeeded
 let isPostgresReady = false;
 
-// Test connection
-pool.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.error('\n======================================================');
-    console.error('⚠️  [Database Warning] Failed to connect to PostgreSQL!');
-    console.error(`Error details: ${err.message}`);
-    console.error('Make sure PostgreSQL is running on your machine and you have created the database specified in server/.env (e.g. nscet_alumni).');
-    console.error('The backend will fall back to using simulated in-memory storage for seamless local execution.');
-    console.error('======================================================\n');
-  } else {
-    isPostgresReady = true;
-    console.log(`✔️  [Database] PostgreSQL connected successfully. DB Time: ${res.rows[0].now}`);
-  }
+// Connection initialization promise
+const dbInitPromise = new Promise((resolve) => {
+  pool.query('SELECT NOW()', (err, res) => {
+    if (err) {
+      console.error('\n======================================================');
+      console.error('⚠️  [Database Warning] Failed to connect to PostgreSQL!');
+      console.error(`Error details: ${err.message}`);
+      console.error('Make sure PostgreSQL is running on your machine and you have created the database specified in server/.env (e.g. nscet_alumni).');
+      console.error('The backend will fall back to using simulated in-memory storage for seamless local execution.');
+      console.error('======================================================\n');
+      isPostgresReady = false;
+    } else {
+      isPostgresReady = true;
+      console.log(`✔️  [Database] PostgreSQL connected successfully. DB Time: ${res.rows[0].now}`);
+    }
+    resolve(isPostgresReady);
+  });
 });
+
+export const waitForDbInit = () => dbInitPromise;
 
 // Local fallback JSON file persistence
 const memoryDbPath = path.join(__dirname, 'memoryDb.json');
