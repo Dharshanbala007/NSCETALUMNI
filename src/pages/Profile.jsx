@@ -140,7 +140,7 @@ export default function Profile({ setView, mockAlumni, currentUser, setMockAlumn
             {/* Avatar / Photo */}
             {alumnus.photo_url ? (
               <img
-                src={alumnus.photo_url.startsWith('/') ? `http://localhost:5000${alumnus.photo_url}` : alumnus.photo_url}
+                src={alumnus.photo_url.startsWith('/') ? `${API_BASE}${alumnus.photo_url}` : alumnus.photo_url}
                 alt={alumnus.name}
                 className="w-20 h-20 md:w-24 md:h-24 rounded-full border-2 border-line object-cover"
               />

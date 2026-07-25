@@ -455,10 +455,10 @@ export default function Admin({ mockAlumni, setMockAlumni, startEditGeo }) {
               <tr key={f.key} className="hover:bg-bg/10 transition-colors">
                 <td className="p-3 font-bold text-ink">{f.label}</td>
                 <td className="p-3 text-ink-muted line-through decoration-red-400">
-                  {f.isImage && f.current !== "No photo" ? <img src={`http://localhost:5000${f.current}`} alt="current" className="w-12 h-12 rounded-sm object-cover"/> : f.current || "Not Provided"}
+                  {f.isImage && f.current !== "No photo" ? <img src={`${API_BASE}${f.current}`} alt="current" className="w-12 h-12 rounded-sm object-cover"/> : f.current || "Not Provided"}
                 </td>
                 <td className="p-3 text-accent-emerald font-semibold bg-accent-emerald/5">
-                  {f.isImage && f.proposed !== "No new photo" ? <img src={`http://localhost:5000${f.proposed}`} alt="proposed" className="w-12 h-12 rounded-sm object-cover border border-accent-emerald"/> : f.proposed || "Not Provided"}
+                  {f.isImage && f.proposed !== "No new photo" ? <img src={`${API_BASE}${f.proposed}`} alt="proposed" className="w-12 h-12 rounded-sm object-cover border border-accent-emerald"/> : f.proposed || "Not Provided"}
                 </td>
               </tr>
             ))}

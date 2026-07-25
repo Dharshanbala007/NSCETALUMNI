@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Search, Mail, ArrowRight, LayoutGrid, Award } from "lucide-react";
 import { departments } from "../data/mockAlumni";
+import API_BASE from "../config";
 
 export default function Gallery({ setView, mockAlumni }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -112,7 +113,7 @@ export default function Gallery({ setView, mockAlumni }) {
               <div className="relative shrink-0 z-10">
                 {alumnus.photo_url ? (
                   <img
-                    src={alumnus.photo_url.startsWith('/') ? `http://localhost:5000${alumnus.photo_url}` : alumnus.photo_url}
+                    src={alumnus.photo_url.startsWith('/') ? `${API_BASE}${alumnus.photo_url}` : alumnus.photo_url}
                     alt={alumnus.name}
                     className="w-24 h-24 rounded-full object-cover border-2 border-line group-hover:border-accent-emerald transition-colors shadow-xs"
                   />
