@@ -49,7 +49,7 @@ let memoryDb = {
   users: [
     {
       id: 1,
-      email: 'admin@nscet.edu',
+      email: 'admin@nscet.org',
       password_hash: '$2b$10$HNe1WMNf2aDh4pPLIN3dFesReJw29CX/SxwvfP4rh2.rvLpZgsZn2', // hashed 'AdminPass123'
       role: 'admin',
       alumni_id: null
@@ -60,9 +60,10 @@ let memoryDb = {
 if (fs.existsSync(memoryDbPath)) {
   try {
     memoryDb = JSON.parse(fs.readFileSync(memoryDbPath, 'utf8'));
-    if (!memoryDb.editRequests) {
-      memoryDb.editRequests = [];
-    }
+    if (!memoryDb.editRequests) memoryDb.editRequests = [];
+    if (!memoryDb.jobs) memoryDb.jobs = [];
+    if (!memoryDb.referralRequests) memoryDb.referralRequests = [];
+    if (!memoryDb.mentorshipRequests) memoryDb.mentorshipRequests = [];
     console.log(`💾 [Database] Loaded ${memoryDb.alumni.length} records from local offline cache: server/memoryDb.json`);
   } catch (err) {
     console.error('⚠️ [Database] Error reading server/memoryDb.json, using fresh default database');
@@ -210,6 +211,83 @@ export default {
         return { rows: [memoryDb.editRequests[idx]], rowCount: 1 };
       }
       return { rows: [], rowCount: 0 };
+    }
+
+    if (textLower.includes('insert into jobs')) {
+      const job = {
+        id: (memoryDb.jobs || []).length + 1,
+        posted_by: params[0],
+        company: params[1],
+        role: params[2],
+        location: params[3],
+        description: params[4],
+        apply_link: params[5],
+        employment_type: params[6],
+        posted_date: params[7],
+        referral_available: params[8] || false,
+        referral_request_count: 0
+      };
+      if (!memoryDb.jobs) memoryDb.jobs = [];
+      memoryDb.jobs.push(job);
+      saveMemoryDb();
+      return { rows: [job], rowCount: 1 };
+    }
+
+    if (textLower.includes('select j.*') || textLower.includes('from jobs')) {
+      if (!memoryDb.jobs) memoryDb.jobs = [];
+      let list = memoryDb.jobs.map(j => {
+        const poster = memoryDb.alumni.find(a => a.id == j.posted_by);
+        return {
+          ...j,
+          posted_by_name: poster ? poster.name : 'Unknown',
+          posted_by_batch: poster ? poster.batch_year : 0,
+          posted_by_dept: poster ? poster.department : 'Unknown',
+          poster_email: poster ? poster.email : null
+        };
+      });
+      // Sort newest first
+      list.sort((a, b) => b.id - a.id);
+      return { rows: list, rowCount: list.length };
+    }
+
+    if (textLower.includes('insert into referral_requests')) {
+      const req = {
+        id: (memoryDb.referralRequests || []).length + 1,
+        job_id: params[0],
+        requester_id: params[1],
+        poster_id: params[2],
+        message: params[3],
+        status: 'pending',
+        created_at: new Date().toISOString()
+      };
+      if (!memoryDb.referralRequests) memoryDb.referralRequests = [];
+      memoryDb.referralRequests.push(req);
+      
+      // Update count
+      if (!memoryDb.jobs) memoryDb.jobs = [];
+      const jobIdx = memoryDb.jobs.findIndex(j => j.id == params[0]);
+      if (jobIdx !== -1) {
+        memoryDb.jobs[jobIdx].referral_request_count = (memoryDb.jobs[jobIdx].referral_request_count || 0) + 1;
+      }
+      
+      saveMemoryDb();
+      return { rows: [req], rowCount: 1 };
+    }
+
+    if (textLower.includes('insert into mentorship_requests')) {
+      const req = {
+        id: (memoryDb.mentorshipRequests || []).length + 1,
+        mentor_id: params[0],
+        mentee_id: params[1],
+        message: params[2],
+        field: params[3],
+        status: 'pending',
+        created_at: new Date().toISOString()
+      };
+      if (!memoryDb.mentorshipRequests) memoryDb.mentorshipRequests = [];
+      memoryDb.mentorshipRequests.push(req);
+      saveMemoryDb();
+      return { rows: [req], rowCount: 1 };
     }
 
     return { rows: [], rowCount: 0 };

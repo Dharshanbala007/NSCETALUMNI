@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Search, Briefcase, Globe, Users, ArrowRight, Award, MapPin } from "lucide-react";
 import { HorizontalThread } from "../components/ThreadConnector";
+import HallOfFame from "../components/HallOfFame";
 
-export default function Home({ setView, setFilterSearch, setFilterDept, mockAlumni }) {
+export default function Home({ setView, setFilterSearch, setFilterDept, mockAlumni, currentUser, onRegisterClick }) {
   const [query, setQuery] = useState("");
 
   // 3D Tilt & Radial Spotlight Cursor tracking handler
@@ -18,14 +19,26 @@ export default function Home({ setView, setFilterSearch, setFilterDept, mockAlum
     const angleX = (yc - y) / 12; // tilt angle around X axis
     const angleY = (x - xc) / 12; // tilt angle around Y axis
     
-    el.style.transform = `perspective(600px) rotateX(${angleX}deg) rotateY(${angleY}deg)`;
-    el.style.setProperty("--mouse-x", `${x}px`);
-    el.style.setProperty("--mouse-y", `${y}px`);
+    el.style.setProperty("--rx", `${angleX}deg`);
+    el.style.setProperty("--ry", `${angleY}deg`);
+    el.style.setProperty("--mx", `${x}px`);
+    el.style.setProperty("--my", `${y}px`);
   };
 
   const handleMouseLeave = (e) => {
     const el = e.currentTarget;
-    el.style.transform = "perspective(600px) rotateX(0deg) rotateY(0deg)";
+    el.style.setProperty("--rx", "0deg");
+    el.style.setProperty("--ry", "0deg");
+  };
+
+  const handleProfileClick = () => {
+    if (!currentUser) {
+      if (onRegisterClick) onRegisterClick();
+    } else if (currentUser.role === "admin") {
+      setView("admin");
+    } else {
+      setView("profile");
+    }
   };
 
   const handleSearchSubmit = (e) => {
@@ -102,6 +115,9 @@ export default function Home({ setView, setFilterSearch, setFilterDept, mockAlum
           </div>
         </form>
       </header>
+
+      {/* Hall of Fame */}
+      <HallOfFame mockAlumni={mockAlumni} />
 
       {/* Browse by Department navigation */}
       <section className="space-y-6 pt-2">
@@ -239,7 +255,7 @@ export default function Home({ setView, setFilterSearch, setFilterDept, mockAlum
           </p>
         </div>
         <button 
-          onClick={() => setView("admin")}
+          onClick={handleProfileClick}
           className="bg-accent-gold hover:bg-accent-gold/90 text-ink px-6 py-3.5 rounded-xs font-sans text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:scale-102 shrink-0 shadow-sm"
         >
           Add / Manage Profile

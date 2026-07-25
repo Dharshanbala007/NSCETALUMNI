@@ -1,28 +1,61 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { GraduationCap, Award, Search, Mail, ArrowRight, UserCheck, X, Check } from "lucide-react";
 
-export default function Mentorship({ mockAlumni, setView }) {
+export default function Mentorship({ setView, currentUser }) {
+  const [mentors, setMentors] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showFormModal, setShowFormModal] = useState(false);
   const [selectedField, setSelectedField] = useState("Software Engineering");
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const mentors = mockAlumni.filter(
-    (a) => a.status === "approved" && a.mentor_available
-  );
+  useEffect(() => {
+    fetch('/api/mentorship')
+      .then(res => res.json())
+      .then(data => {
+        setMentors(Array.isArray(data) ? data : []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
 
   // Compile list of unique mentor fields for the selector
   const allFields = [...new Set(mentors.flatMap(m => m.mentor_fields || []))].sort();
 
-  const handleRequestMatch = (e) => {
+  const handleRequestMatch = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setShowFormModal(false);
-      setSubmitted(false);
-      setMessage("");
-    }, 2000);
+    if (!currentUser || !currentUser.alumni_id) {
+      alert("You must be logged in as an alumnus to request a match.");
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/mentorship/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mentee_id: currentUser.alumni_id,
+          message,
+          field: selectedField
+        })
+      });
+      if (res.ok) {
+        setSubmitted(true);
+        setTimeout(() => {
+          setShowFormModal(false);
+          setSubmitted(false);
+          setMessage("");
+        }, 2000);
+      } else {
+        alert("Failed to submit request.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const filteredMentors = mentors.filter((mentor) => {

@@ -1,14 +1,33 @@
-import React, { useState } from "react";
-import { Search, MapPin, Briefcase, UserCheck, Plus, X, Send, Check } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Search, MapPin, Briefcase, UserCheck, Plus, X, Send, Check, FileText } from "lucide-react";
 
-export default function Jobs({ mockJobs, setMockJobs }) {
+export default function Jobs({ currentUser }) {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedType, setSelectedType] = useState("All");
   
+  useEffect(() => {
+    fetch('/api/jobs')
+      .then(res => res.json())
+      .then(data => {
+        setJobs(Array.isArray(data) ? data : []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
   // Modal states
   const [showPostModal, setShowPostModal] = useState(false);
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [activeJob, setActiveJob] = useState(null);
+
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [resumeSkills, setResumeSkills] = useState([]);
+  const [isParsing, setIsParsing] = useState(false);
 
   // New job form states
   const [newTitle, setNewTitle] = useState("");
@@ -24,62 +43,118 @@ export default function Jobs({ mockJobs, setMockJobs }) {
   const [referralSubmitted, setReferralSubmitted] = useState(false);
 
   // Post Submit handler
-  const handlePostJob = (e) => {
+  const handlePostJob = async (e) => {
     e.preventDefault();
-    const newPost = {
-      id: "j" + (mockJobs.length + 1),
-      posted_by: {
-        id: "a1",
-        name: "Jane Doe (You)",
-        role: "Student / Developer",
-        current_company: "NSCET",
-        batch_year: 2027,
-        department: "CSE"
-      },
+    if (!currentUser || !currentUser.alumni_id) {
+      alert("You must be logged in as an alumnus to post a job.");
+      return;
+    }
+
+    const payload = {
+      posted_by: currentUser.alumni_id,
       company: newCompany,
       role: newTitle,
       location: newLoc,
       description: newDesc,
-      apply_link: newApply || "https://careers.google.com/jobs",
+      apply_link: newApply,
       employment_type: newType,
-      posted_date: new Date().toISOString().split("T")[0],
-      referral_available: newReferral,
-      referral_request_count: 0
+      referral_available: newReferral
     };
 
-    setMockJobs([newPost, ...mockJobs]);
-    setShowPostModal(false);
-    
-    // Clear fields
-    setNewTitle("");
-    setNewCompany("");
-    setNewLoc("");
-    setNewDesc("");
-    setNewApply("");
+    try {
+      const res = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const newJob = await res.json();
+        // Optimistically add name mapping
+        newJob.posted_by_name = currentUser.name || "You";
+        setJobs([newJob, ...jobs]);
+        setShowPostModal(false);
+        setNewTitle("");
+        setNewCompany("");
+        setNewLoc("");
+        setNewDesc("");
+        setNewApply("");
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleRequestReferralSubmit = (e) => {
+  const handleRequestReferralSubmit = async (e) => {
     e.preventDefault();
-    setReferralSubmitted(true);
+    if (!currentUser || !currentUser.alumni_id) {
+      alert("You must be logged in to request a referral.");
+      return;
+    }
 
-    // Update the referral counter in the jobs list
-    setMockJobs(prevJobs => 
-      prevJobs.map(job => 
-        job.id === activeJob.id 
-          ? { ...job, referral_request_count: job.referral_request_count + 1 }
-          : job
-      )
-    );
+    try {
+      const res = await fetch('/api/jobs/referral', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          job_id: activeJob.id,
+          requester_id: currentUser.alumni_id,
+          poster_id: activeJob.posted_by,
+          message: referralMessage
+        })
+      });
+      if (res.ok) {
+        setReferralSubmitted(true);
+        setJobs(prevJobs => 
+          prevJobs.map(job => 
+            job.id === activeJob.id 
+              ? { ...job, referral_request_count: (job.referral_request_count || 0) + 1 }
+              : job
+          )
+        );
+        setTimeout(() => {
+          setShowReferralModal(false);
+          setReferralSubmitted(false);
+          setReferralMessage("");
+        }, 2000);
+      } else {
+        alert("Failed to submit request.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-    setTimeout(() => {
-      setShowReferralModal(false);
-      setReferralSubmitted(false);
-      setReferralMessage("");
-    }, 2000);
+  const handleResumeUpload = async (e) => {
+    e.preventDefault();
+    const file = e.target.resume.files[0];
+    if (!file) return;
+
+    setIsParsing(true);
+    const formData = new FormData();
+    formData.append("resume", file);
+
+    try {
+      const res = await fetch("/api/jobs/parse-resume", {
+        method: "POST",
+        body: formData
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setResumeSkills(data.skills);
+        setShowResumeModal(false);
+      } else {
+        alert("Failed to parse resume.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error parsing resume.");
+    } finally {
+      setIsParsing(false);
+    }
   };
 
   // Filter Logic
-  const filteredJobs = mockJobs.filter((job) => {
+  const filteredJobs = jobs.filter((job) => {
     if (search.trim() !== "") {
       const q = search.toLowerCase();
       const roleMatch = job.role?.toLowerCase().includes(q);
@@ -98,6 +173,45 @@ export default function Jobs({ mockJobs, setMockJobs }) {
     return true;
   });
 
+  // Sort by matched skills if available
+  const sortedJobs = [...filteredJobs].sort((a, b) => {
+    if (resumeSkills.length === 0) return 0;
+    
+    const textA = (a.role + " " + a.description).toLowerCase();
+    const textB = (b.role + " " + b.description).toLowerCase();
+    
+    let scoreA = 0;
+    let scoreB = 0;
+    
+    resumeSkills.forEach(skill => {
+      if (textA.includes(skill.toLowerCase())) scoreA++;
+      if (textB.includes(skill.toLowerCase())) scoreB++;
+    });
+    
+    // Sort descending
+    return scoreB - scoreA;
+  });
+
+  // Helper to highlight skills
+  const highlightMatches = (job) => {
+    if (resumeSkills.length === 0) return null;
+    const text = (job.role + " " + job.description).toLowerCase();
+    const matches = resumeSkills.filter(s => text.includes(s.toLowerCase()));
+    if (matches.length > 0) {
+      return (
+        <div className="flex flex-wrap gap-1 mt-3">
+          <span className="text-[10px] font-bold text-ink-muted mr-1">Matched Skills:</span>
+          {matches.map(m => (
+            <span key={m} className="text-[10px] font-bold bg-accent-gold/20 text-accent-gold border border-accent-gold/40 px-1.5 py-0.5 rounded-sm animate-pulse">
+              {m}
+            </span>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       
@@ -109,13 +223,26 @@ export default function Jobs({ mockJobs, setMockJobs }) {
             Browse internal opportunities and referral pipelines shared directly by NSCET alumni.
           </p>
         </div>
-        <button
-          onClick={() => setShowPostModal(true)}
-          className="bg-ink hover:bg-ink-muted text-surface hover:text-accent-gold text-xs font-bold uppercase tracking-wider py-3 px-5 rounded-xs transition-colors flex items-center justify-center gap-1.5 self-start sm:self-auto shrink-0 border border-ink"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Post a Job Opening</span>
-        </button>
+        <div className="flex items-center gap-3 self-start sm:self-auto shrink-0 flex-wrap">
+          <button
+            onClick={() => setShowResumeModal(true)}
+            className={`text-xs font-bold uppercase tracking-wider py-3 px-5 rounded-xs transition-colors flex items-center justify-center gap-1.5 border shadow-xs ${
+              resumeSkills.length > 0 
+                ? 'bg-accent-gold text-surface border-accent-gold'
+                : 'bg-surface text-ink border-line hover:border-accent-gold hover:text-accent-gold'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>{resumeSkills.length > 0 ? `${resumeSkills.length} Skills Matched` : "Smart Match Resume"}</span>
+          </button>
+          <button
+            onClick={() => setShowPostModal(true)}
+            className="bg-ink hover:bg-ink-muted text-surface hover:text-accent-gold text-xs font-bold uppercase tracking-wider py-3 px-5 rounded-xs transition-colors flex items-center justify-center gap-1.5 border border-ink"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Post a Job Opening</span>
+          </button>
+        </div>
       </header>
 
       {/* Filter Options Bar */}
@@ -152,8 +279,10 @@ export default function Jobs({ mockJobs, setMockJobs }) {
 
       {/* Jobs Listing Grid */}
       <div className="space-y-6">
-        {filteredJobs.length > 0 ? (
-          filteredJobs.map((job) => (
+        {loading ? (
+          <div className="text-center py-12 text-ink-muted text-sm font-semibold">Loading jobs...</div>
+        ) : sortedJobs.length > 0 ? (
+          sortedJobs.map((job) => (
             <div
               key={job.id}
               className="bg-surface border border-line p-6 rounded-sm space-y-4 hover:border-accent-emerald/60 hover:shadow-xs transition-all duration-150 flex flex-col justify-between"
@@ -187,6 +316,9 @@ export default function Jobs({ mockJobs, setMockJobs }) {
                   <p className="font-sans text-xs text-ink-muted leading-relaxed max-w-3xl">
                     {job.description}
                   </p>
+                  
+                  {/* Smart Match Indicator */}
+                  {highlightMatches(job)}
                 </div>
 
                 {/* Right Side: Apply Buttons */}
@@ -223,7 +355,7 @@ export default function Jobs({ mockJobs, setMockJobs }) {
               <div className="pt-3 border-t border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-ink-muted bg-bg/40 -mx-6 -mb-6 p-4 border-b border-line rounded-b-sm">
                 <span className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-accent-gold"></span>
-                  <span>Posted by: <strong className="text-ink font-display font-medium">{job.posted_by.name}</strong> (Batch of {job.posted_by.batch_year} · {job.posted_by.department})</span>
+                  <span>Posted by: <strong className="text-ink font-display font-medium">{job.posted_by_name}</strong> {job.posted_by_batch ? `(Batch of ${job.posted_by_batch} · ${job.posted_by_dept})` : ''}</span>
                 </span>
                 
                 {job.referral_available && (
@@ -395,7 +527,7 @@ export default function Jobs({ mockJobs, setMockJobs }) {
                   </div>
                   <h4 className="font-sans font-bold text-sm">Referral Request Sent!</h4>
                   <p className="font-sans text-xs text-ink-muted leading-relaxed">
-                    A notification was dispatched to <strong>{activeJob.posted_by.name}</strong>. They will review your profile and reach out via email.
+                    A notification was dispatched to <strong>{activeJob.posted_by_name}</strong>. They will review your profile and reach out via email.
                   </p>
                 </div>
               ) : (
@@ -433,6 +565,66 @@ export default function Jobs({ mockJobs, setMockJobs }) {
                   </div>
                 </>
               )}
+            </form>
+          </div>
+        </div>
+      )}
+      
+      {/* Modal 3: Smart Match Resume */}
+      {showResumeModal && (
+        <div className="fixed inset-0 bg-ink/55 backdrop-blur-xs flex items-center justify-center p-4 z-100">
+          <div className="bg-surface border border-line rounded-sm w-full max-w-md shadow-lg relative animate-scale-up">
+            <button
+              onClick={() => setShowResumeModal(false)}
+              className="absolute top-4 right-4 text-ink-muted hover:text-ink cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <form onSubmit={handleResumeUpload} className="p-6 space-y-4">
+              <div className="flex items-center gap-2.5 border-b border-line pb-3">
+                <FileText className="w-5 h-5 text-accent-gold" />
+                <div>
+                  <h3 className="font-display font-semibold text-lg text-ink">Smart Job Matcher</h3>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <p className="font-sans text-xs text-ink-muted leading-relaxed">
+                  Upload your PDF resume. Our local AI will extract your core skills and automatically reorganize the job board to highlight the best matches for you!
+                </p>
+                <div className="border-2 border-dashed border-line rounded-sm p-6 flex flex-col items-center justify-center hover:border-accent-gold transition-colors">
+                  <FileText className="w-8 h-8 text-line mb-2" />
+                  <input required type="file" name="resume" accept="application/pdf" className="text-xs text-ink w-full max-w-[220px]" />
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-line flex justify-end gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResumeSkills([]);
+                    setShowResumeModal(false);
+                  }}
+                  className="border border-line hover:bg-bg px-4 py-2.5 rounded-xs text-ink-muted font-bold"
+                >
+                  Clear & Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isParsing}
+                  className="bg-ink hover:bg-ink-muted text-surface px-5 py-2.5 rounded-xs font-bold disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isParsing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-surface"></div>
+                      Parsing...
+                    </>
+                  ) : (
+                    "Upload & Match"
+                  )}
+                </button>
+              </div>
             </form>
           </div>
         </div>

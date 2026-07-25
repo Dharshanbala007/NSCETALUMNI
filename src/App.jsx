@@ -12,6 +12,9 @@ import Admin from "./pages/Admin";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Gallery from "./pages/Gallery";
+import Contributions from "./pages/Contributions";
+import EventGallery from "./pages/EventGallery";
+import RegistrationModal from "./components/RegistrationModal";
 import { User, LogIn, LogOut, Shield, Check, AlertCircle, X, ArrowUp, CheckCircle, MapPin } from "lucide-react";
 
 // Mock databases
@@ -91,6 +94,7 @@ export default function App() {
   // Authentication States
   const [currentUser, setCurrentUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [loginTab, setLoginTab] = useState("alumni"); // alumni, admin
   const [loginError, setLoginError] = useState("");
   const [hasEntered, setHasEntered] = useState(false);
@@ -449,13 +453,55 @@ export default function App() {
           onScroll={handleScroll}
           className="flex-1 overflow-y-auto relative scroll-smooth bg-bg"
         >
-          {/* The Institutional Banner Header Image */}
-          <div className="bg-surface border-b border-line py-3 px-6 flex justify-center items-center shrink-0">
-            <img 
-              src="/college_header.png" 
-              alt="Nadar Saraswathi College of Engineering & Technology Header" 
-              className="max-h-28 md:max-h-32 w-full max-w-5xl object-contain"
-            />
+          {/* The Institutional Banner Header Image - Styled Custom HTML replacement */}
+          <div className="bg-surface/60 backdrop-blur-md border-b border-line py-5 px-4 md:px-8 flex justify-between items-center shrink-0 group relative overflow-hidden transition-all duration-500 hover:bg-surface hover:shadow-sm">
+            {/* Background Glow Effect on Hover */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 -translate-x-full group-hover:translate-x-full ease-in-out"></div>
+
+            {/* Left Logo */}
+            <div className="shrink-0 transition-transform duration-500 group-hover:scale-105 group-hover:rotate-1 z-10">
+              <img src="/college_logo.png" alt="NSCET Logo" className="h-16 md:h-24 w-auto object-contain drop-shadow-sm mix-blend-multiply" />
+            </div>
+
+            {/* Center Text */}
+            <div className="flex flex-col items-center justify-center text-center px-4 z-10 w-full max-w-4xl">
+              <h3 className="font-sans text-[10px] md:text-xs font-bold text-ink-muted uppercase tracking-[0.2em] mb-1.5 transition-colors duration-300 group-hover:text-accent-gold">
+                Theni Melapettai Hindu Nadargal Uravinmurai
+              </h3>
+              
+              <h1 className="font-display text-base md:text-2xl lg:text-3xl font-extrabold text-ink tracking-tight mb-2.5 transition-all duration-300 group-hover:tracking-normal">
+                <span className="text-[#002b5e] group-hover:text-[#003c80] transition-colors duration-300">NADAR SARASWATHI COLLEGE</span>
+                <br className="md:hidden" />
+                <span className="text-[#002b5e] group-hover:text-[#003c80] transition-colors duration-300 md:ml-2">OF ENGINEERING & TECHNOLOGY</span>
+              </h1>
+              
+              <div className="font-sans text-[8px] md:text-[11px] font-medium text-ink-muted/80 flex flex-col items-center gap-0.5 md:gap-1 transition-colors duration-300 group-hover:text-ink-muted">
+                <p className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
+                  <span>Approved by AICTE, New Delhi</span>
+                  <span className="hidden md:inline text-accent-gold/50">•</span>
+                  <span>Affiliated to Anna University, Chennai</span>
+                </p>
+                <p className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
+                  <span>Accredited by NAAC with 'A' Grade</span>
+                  <span className="hidden md:inline text-accent-gold/50">•</span>
+                  <span>Recognized under Section 2(f)</span>
+                  <span className="hidden md:inline text-accent-gold/50">•</span>
+                  <span>An ISO 9001:2015 Certified Institution</span>
+                </p>
+                <p className="font-bold text-ink mt-1 md:mt-1.5 group-hover:text-accent-gold transition-colors duration-300">
+                  Vadapudupatti, Annanji (PO), Theni - 625 531
+                </p>
+              </div>
+            </div>
+
+            {/* Right Logo (Kamarajar Logo) */}
+            <div className="shrink-0 hidden lg:flex w-24 h-24 items-center justify-center transition-all duration-500 group-hover:scale-105 group-hover:-rotate-3 z-10 rounded-full overflow-hidden shadow-sm border border-line">
+              <img 
+                src="/kamarajar.jpg" 
+                alt="Kamarajar Logo" 
+                className="w-full h-full object-cover" 
+              />
+            </div>
           </div>
 
           {/* Smooth transition container keyed to view changes */}
@@ -466,6 +512,8 @@ export default function App() {
                 setFilterSearch={setFilterSearch} 
                 setFilterDept={setFilterDept}
                 mockAlumni={mockAlumni} 
+                currentUser={currentUser}
+                onRegisterClick={() => setShowRegistrationModal(true)}
               />
             )}
             {currentView === "directory" && (
@@ -508,12 +556,14 @@ export default function App() {
               <Jobs 
                 mockJobs={mockJobs} 
                 setMockJobs={setMockJobs} 
+                currentUser={currentUser}
               />
             )}
             {currentView === "mentorship" && (
               <Mentorship 
                 mockAlumni={mockAlumni} 
                 setView={setView} 
+                currentUser={currentUser}
               />
             )}
             {currentView === "events" && (
@@ -521,6 +571,12 @@ export default function App() {
                 mockEvents={mockEvents} 
                 setMockEvents={setMockEvents} 
               />
+            )}
+            {currentView === "contributions" && (
+              <Contributions currentUser={currentUser} />
+            )}
+            {currentView === "event-gallery" && (
+              <EventGallery />
             )}
             {currentView === "admin" && (
               currentUser && currentUser.role === "admin" ? (
@@ -564,9 +620,9 @@ export default function App() {
         </main>
       </div>
 
-      {/* Authentication Sign In Modal Overlay */}
+      {/* Authentication Modals */}
       {showLoginModal && (
-        <div className="fixed inset-0 bg-ink/55 backdrop-blur-xs flex items-center justify-center p-4 z-100">
+        <div className="fixed inset-0 bg-ink/55 backdrop-blur-xs flex items-center justify-center p-4 z-[100]">
           <div className="bg-surface border border-line rounded-sm w-full max-w-md shadow-lg relative animate-scale-up">
             
             {/* Close modal */}
@@ -698,6 +754,10 @@ export default function App() {
             </form>
           </div>
         </div>
+      )}
+      
+      {showRegistrationModal && (
+        <RegistrationModal onClose={() => setShowRegistrationModal(false)} />
       )}
 
       {/* Geolocation Update Modal popup overlay */}

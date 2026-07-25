@@ -97,22 +97,23 @@ export default function Landing({ onEnterAsGuest, onSignIn, currentUser, onSignO
         
         {/* College Header Crest / Label */}
         <div className="space-y-4">
-          <div className="flex justify-center">
-            {/* Enlarged logo with transparent background and golden drop shadow */}
+          <div className="relative flex justify-center items-center group cursor-pointer">
+            {/* Glowing Aura Highlight behind the logo */}
+            <div className="absolute w-36 h-36 bg-accent-gold/20 rounded-full blur-2xl transition-all duration-500 group-hover:bg-accent-gold/40 group-hover:scale-125" />
+            
+            {/* Enlarged logo with intense golden drop shadow */}
             <img 
               src="/college_logo.png" 
               alt="NSCET Crest"
-              className="w-28 h-28 object-contain transition-transform duration-500 hover:scale-105 hover:rotate-2 filter drop-shadow-[0_8px_20px_rgba(192,138,46,0.35)] cursor-pointer"
+              className="relative z-10 w-40 h-40 object-contain transition-transform duration-500 group-hover:scale-105 group-hover:-translate-y-1 filter drop-shadow-[0_8px_30px_rgba(192,138,46,0.5)]"
             />
           </div>
           
           <div className="space-y-1">
-            <span className="font-sans text-[10px] font-bold tracking-widest text-accent-gold uppercase bg-surface/10 px-4 py-1.5 rounded-full border border-accent-gold/30 backdrop-blur-xs">
-              Official Institutional Network
-            </span>
-            <h1 className="font-display font-bold text-3xl md:text-5xl text-surface tracking-tight leading-tight pt-2">
+
+            <h1 className="font-display font-bold text-3xl md:text-5xl text-white tracking-tight leading-tight pt-2 drop-shadow-md">
               Nadar Saraswathi College of <br/>
-              <span className="text-accent-gold">Engineering & Technology</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-400 to-orange-500 drop-shadow-lg">Engineering & Technology</span>
             </h1>
             <p className="font-sans text-xs md:text-sm font-semibold tracking-wider text-surface/75 uppercase mt-1">
               Alumni Registry Portal

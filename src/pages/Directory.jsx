@@ -60,13 +60,13 @@ export default function Directory({ setView, filterSearch, setFilterSearch, filt
     // 1. Text Search (matches name, current role, company, skills, location, bio)
     if (search.trim() !== "") {
       const q = search.toLowerCase();
-      const nameMatch = alumnus.name?.toLowerCase().includes(q);
-      const companyMatch = alumnus.current_company?.toLowerCase().includes(q);
-      const roleMatch = alumnus.current_role?.toLowerCase().includes(q);
-      const bioMatch = alumnus.bio?.toLowerCase().includes(q);
-      const cityMatch = alumnus.location?.city?.toLowerCase().includes(q);
-      const countryMatch = alumnus.location?.country?.toLowerCase().includes(q);
-      const skillsMatch = alumnus.skills?.some(s => s.toLowerCase().includes(q));
+      const nameMatch = (alumnus.name || "").toLowerCase().includes(q);
+      const companyMatch = (alumnus.current_company || "").toLowerCase().includes(q);
+      const roleMatch = (alumnus.current_role || "").toLowerCase().includes(q);
+      const bioMatch = (alumnus.bio || "").toLowerCase().includes(q);
+      const cityMatch = (alumnus.location?.city || "").toLowerCase().includes(q);
+      const countryMatch = (alumnus.location?.country || "").toLowerCase().includes(q);
+      const skillsMatch = alumnus.skills?.some(s => (s || "").toLowerCase().includes(q));
       
       if (!nameMatch && !companyMatch && !roleMatch && !bioMatch && !cityMatch && !countryMatch && !skillsMatch) {
         return false;

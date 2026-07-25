@@ -93,7 +93,7 @@ async function runImport() {
   }
 
   // 2. Seed Default Admin User
-  const adminEmail = 'admin@nscet.edu';
+  const adminEmail = 'admin@nscet.org';
   const adminPassword = 'AdminPass123';
   const salt = await bcrypt.genSalt(10);
   const adminHash = await bcrypt.hash(adminPassword, salt);

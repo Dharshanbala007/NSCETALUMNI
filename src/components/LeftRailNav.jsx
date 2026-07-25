@@ -12,7 +12,9 @@ import {
   X,
   LayoutGrid,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Mic,
+  Image
 } from "lucide-react";
 
 export default function LeftRailNav({ currentView, setView, pendingCount, currentUser, isCollapsed, onToggleCollapse }) {
@@ -28,6 +30,8 @@ export default function LeftRailNav({ currentView, setView, pendingCount, curren
     { id: "jobs", label: "Jobs & Referrals", icon: Briefcase },
     { id: "mentorship", label: "Mentorship", icon: GraduationCap },
     { id: "events", label: "Events & Reunions", icon: Calendar },
+    { id: "contributions", label: "Alumni Contribution", icon: Mic },
+    { id: "event-gallery", label: "Alumni Gallery", icon: Image },
     ...(currentUser && currentUser.role === "admin"
       ? [{ id: "admin", label: "Registry Admin", icon: ShieldCheck, badge: pendingCount }]
       : [])

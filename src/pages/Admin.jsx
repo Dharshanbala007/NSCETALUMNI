@@ -17,7 +17,9 @@ import {
   Award,
   SlidersHorizontal,
   Mail,
-  Phone
+  Phone,
+  Image,
+  Video
 } from "lucide-react";
 import { departments } from "../data/mockAlumni";
 
@@ -31,6 +33,9 @@ export default function Admin({ mockAlumni, setMockAlumni, startEditGeo }) {
   
   const [pendingAlumni, setPendingAlumni] = useState([]);
   const [isLoadingPending, setIsLoadingPending] = useState(false);
+
+  const [pendingContributions, setPendingContributions] = useState([]);
+  const [isLoadingContribs, setIsLoadingContribs] = useState(false);
 
   const fetchEditRequests = async () => {
     setIsLoadingRequests(true);
@@ -68,9 +73,27 @@ export default function Admin({ mockAlumni, setMockAlumni, startEditGeo }) {
     }
   };
 
+  const fetchPendingContributions = async () => {
+    setIsLoadingContribs(true);
+    try {
+      const res = await fetch("/api/admin/pending-contributions", {
+        headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPendingContributions(data);
+      }
+    } catch (err) {
+      console.log("Offline mode: Empty pending contributions");
+    } finally {
+      setIsLoadingContribs(false);
+    }
+  };
+
   React.useEffect(() => {
     fetchEditRequests();
     fetchPendingRegistrations();
+    fetchPendingContributions();
   }, []);
 
   const handleModerateEditRequest = async (requestId, action, pendingData, alumniId) => {
@@ -548,6 +571,37 @@ export default function Admin({ mockAlumni, setMockAlumni, startEditGeo }) {
                 {editRequests.length}
               </span>
             )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab("contributions")}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-sm font-sans text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer border ${
+              activeTab === "contributions" 
+                ? "bg-ink border-ink text-surface" 
+                : "border-transparent text-ink hover:bg-bg hover:text-accent-gold"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Video className="w-4 h-4 shrink-0" />
+              <span>Pending Contributions</span>
+            </div>
+            {pendingContributions.length > 0 && (
+              <span className="font-data text-[10px] bg-accent-gold text-surface px-1.5 py-0.5 rounded-full font-bold">
+                {pendingContributions.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab("gallery")}
+            className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-sm font-sans text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer border ${
+              activeTab === "gallery" 
+                ? "bg-ink border-ink text-surface" 
+                : "border-transparent text-ink hover:bg-bg hover:text-accent-gold"
+            }`}
+          >
+            <Image className="w-4 h-4 shrink-0" />
+            <span>Upload to Gallery</span>
           </button>
         </aside>
 
@@ -1214,8 +1268,150 @@ export default function Admin({ mockAlumni, setMockAlumni, startEditGeo }) {
             </div>
           )}
 
-        </div>
+          {/* New Tab: Pending Contributions */}
+          {activeTab === "contributions" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="font-display font-bold text-xl text-ink">Pending Alumni Contributions</h2>
+                <p className="font-sans text-xs text-ink-muted mt-1 max-w-2xl">
+                  Review and approve webinars, masterclasses, and workshops submitted by alumni.
+                </p>
+              </div>
 
+              {isLoadingContribs ? (
+                <div className="text-center py-10">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-gold mx-auto"></div>
+                </div>
+              ) : pendingContributions.length === 0 ? (
+                <div className="text-center py-20 border border-line border-dashed rounded-md bg-bg">
+                  <CheckCircle className="w-8 h-8 text-ink-muted mx-auto mb-3" />
+                  <p className="font-sans font-semibold text-ink-muted">No pending contributions to review.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingContributions.map((c) => (
+                    <div key={c.id} className="bg-bg border border-line rounded-sm p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-accent-gold border border-accent-gold/20 bg-accent-gold/10 px-2 py-0.5 rounded-sm">
+                            {c.type}
+                          </span>
+                          <span className="font-sans text-xs font-bold text-ink-muted">{new Date(c.event_date).toLocaleString()}</span>
+                        </div>
+                        <h3 className="font-display font-bold text-lg text-ink">{c.title}</h3>
+                        <p className="font-sans text-sm text-ink-muted line-clamp-2">{c.description}</p>
+                        <p className="font-sans text-xs text-ink mt-2">
+                          Submitted by: <span className="font-bold">{c.name}</span> ({c.department}, {c.batch_year})
+                        </p>
+                        {c.link && (
+                          <p className="font-sans text-xs text-accent-emerald mt-1">Link: {c.link}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={async () => {
+                            try {
+                              const res = await fetch("/api/admin/moderate-contribution", {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                  "Authorization": `Bearer ${localStorage.getItem("jwt_token")}`
+                                },
+                                body: JSON.stringify({ id: c.id, action: 'approve' })
+                              });
+                              if (res.ok) fetchPendingContributions();
+                            } catch (e) { console.error(e); }
+                          }}
+                          className="px-4 py-2 bg-ink hover:bg-ink-muted text-surface text-xs font-bold uppercase tracking-wider rounded-sm transition-colors cursor-pointer"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={async () => {
+                            try {
+                              const res = await fetch("/api/admin/moderate-contribution", {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                  "Authorization": `Bearer ${localStorage.getItem("jwt_token")}`
+                                },
+                                body: JSON.stringify({ id: c.id, action: 'reject' })
+                              });
+                              if (res.ok) fetchPendingContributions();
+                            } catch (e) { console.error(e); }
+                          }}
+                          className="px-4 py-2 border border-line text-ink hover:bg-bg hover:text-accent-red text-xs font-bold uppercase tracking-wider rounded-sm transition-colors cursor-pointer"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* New Tab: Gallery Upload */}
+          {activeTab === "gallery" && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="font-display font-bold text-xl text-ink">Upload to Event Gallery</h2>
+                <p className="font-sans text-xs text-ink-muted mt-1 max-w-2xl">
+                  Add new photos to the alumni event gallery.
+                </p>
+              </div>
+
+              <form 
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.target);
+                  try {
+                    const res = await fetch("/api/admin/gallery", {
+                      method: "POST",
+                      headers: {
+                        "Authorization": `Bearer ${localStorage.getItem("jwt_token")}`
+                      },
+                      body: formData
+                    });
+                    if (res.ok) {
+                      alert("Image uploaded successfully!");
+                      e.target.reset();
+                    } else {
+                      alert("Upload failed.");
+                    }
+                  } catch (err) {
+                    console.error(err);
+                    alert("Error uploading image.");
+                  }
+                }}
+                className="max-w-md bg-bg border border-line p-6 rounded-sm space-y-4"
+              >
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1">Title</label>
+                  <input required name="title" type="text" className="w-full bg-surface border border-line p-2 text-sm rounded-xs focus:border-accent-gold outline-none" placeholder="e.g., Annual Tech Fest 2026" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1">Category</label>
+                  <input required name="category" type="text" className="w-full bg-surface border border-line p-2 text-sm rounded-xs focus:border-accent-gold outline-none" placeholder="e.g., Hackathons, Reunions" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1">Event Date</label>
+                  <input required name="event_date" type="date" className="w-full bg-surface border border-line p-2 text-sm rounded-xs focus:border-accent-gold outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-ink mb-1">Image File</label>
+                  <input required name="image" type="file" accept="image/*" className="w-full bg-surface border border-line p-2 text-sm rounded-xs focus:border-accent-gold outline-none" />
+                </div>
+                <button type="submit" className="w-full bg-ink hover:bg-ink-muted text-surface py-3 rounded-sm font-sans text-sm font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                  <Upload className="w-4 h-4" />
+                  Upload Image
+                </button>
+              </form>
+            </div>
+          )}
+
+        </div>
       </div>
 
       {/* Geolocation Update Modal popup overlay removed from Admin.jsx (moved to App.jsx root) */}
