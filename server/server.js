@@ -411,6 +411,17 @@ app.post('/api/alumni/moderate', requireAdmin, async (req, res) => {
         "UPDATE alumni SET status = 'rejected', verified = false WHERE id = $1 RETURNING *",
         [id]
       );
+      const user = result.rows[0];
+      if (user && user.email) {
+        await sendEmail(
+          user.email,
+          'NSCET Alumni Registry Registration Update',
+          `<h3>Registration Status Update</h3>
+           <p>Dear ${user.name},</p>
+           <p>Your registration request for the NSCET Alumni Registry was reviewed. Unfortunately, it could not be approved at this time. Please contact administration for further details.</p>
+           <p>Best Regards,<br/>NSCET Admin Team</p>`
+        );
+      }
     } else {
       return res.status(400).json({ error: 'Invalid action. Must be approve or reject.' });
     }
@@ -1152,7 +1163,37 @@ app.post('/api/jobs', async (req, res) => {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
       [posted_by, company, role, location || '', description || '', apply_link || '', employment_type || 'Full-time', posted_date, referral_available]
     );
-    res.status(201).json(result.rows[0]);
+    const newJob = result.rows[0];
+
+    // Send email notification to Job Poster & Admin
+    try {
+      const posterQuery = await db.query('SELECT * FROM alumni WHERE id = $1', [posted_by]);
+      if (posterQuery.rows.length > 0) {
+        const poster = posterQuery.rows[0];
+        if (poster.email) {
+          await sendEmail(
+            poster.email,
+            `Job Opening Published: ${role} at ${company}`,
+            `<h3>Your Job Opening is Live!</h3>
+             <p>Hi ${poster.name},</p>
+             <p>Your job posting for <strong>${role}</strong> at <strong>${company}</strong> has been published to the NSCET Alumni Portal.</p>
+             <p>Referral Available: <strong>${referral_available ? 'Yes' : 'No'}</strong></p>
+             <p>Thank you for helping fellow NSCET graduates!</p>`
+          );
+        }
+      }
+      const adminEmail = process.env.ADMIN_EMAIL || 'admin@nscet.org';
+      await sendEmail(
+        adminEmail,
+        `New Job Posted: ${role} at ${company}`,
+        `<h3>New Job Opening Posted</h3>
+         <p>A new job position <strong>${role}</strong> at <strong>${company}</strong> (${location || 'Remote'}) has been published on the portal.</p>`
+      );
+    } catch (emailErr) {
+      console.warn('Error sending job post emails:', emailErr.message);
+    }
+
+    res.status(201).json(newJob);
   } catch (err) {
     console.error('Error posting job:', err);
     res.status(500).json({ error: 'Failed to post job' });
@@ -1173,7 +1214,7 @@ app.post('/api/jobs/referral', async (req, res) => {
       [job_id, requester_id, poster_id, message || '']
     );
 
-    // Fetch poster and requester info to send email
+    // Fetch poster and requester info to send emails
     const posterQuery = await db.query('SELECT * FROM alumni WHERE id = $1', [poster_id]);
     const reqQuery = await db.query('SELECT * FROM alumni WHERE id = $1', [requester_id]);
     
@@ -1187,8 +1228,19 @@ app.post('/api/jobs/referral', async (req, res) => {
           `Referral Request: ${requester.name} requested a referral!`,
           `<h3>New Referral Request</h3>
            <p><strong>${requester.name}</strong> (Batch of ${requester.batch_year}, ${requester.department}) has requested a referral for the job you posted.</p>
-           <p><strong>Message:</strong><br/>"${message}"</p>
+           <p><strong>Message / Pitch:</strong><br/>"${message}"</p>
            <p>Please log in to the portal to view their full profile and respond.</p>`
+        );
+      }
+      if (requester.email) {
+        await sendEmail(
+          requester.email,
+          `Referral Request Delivered to ${poster.name}`,
+          `<h3>Referral Request Confirmation</h3>
+           <p>Hi ${requester.name},</p>
+           <p>Your referral request for the job position at <strong>${poster.current_company || 'Company'}</strong> has been delivered to <strong>${poster.name}</strong>.</p>
+           <p><strong>Your Pitch:</strong><br/>"${message}"</p>
+           <p>Best of luck with your application!</p>`
         );
       }
     }
