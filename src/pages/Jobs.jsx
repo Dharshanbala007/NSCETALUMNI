@@ -46,13 +46,14 @@ export default function Jobs({ currentUser, onRegisterClick }) {
   // Post Submit handler
   const handlePostJob = async (e) => {
     e.preventDefault();
-    if (!currentUser || !currentUser.alumni_id) {
+    const alumniId = currentUser?.alumni_id || currentUser?.id;
+    if (!currentUser || !alumniId) {
       alert("You must be logged in as an alumnus to post a job.");
       return;
     }
 
     const payload = {
-      posted_by: currentUser.alumni_id,
+      posted_by: alumniId,
       company: newCompany,
       role: newTitle,
       location: newLoc,
@@ -87,7 +88,8 @@ export default function Jobs({ currentUser, onRegisterClick }) {
 
   const handleRequestReferralSubmit = async (e) => {
     e.preventDefault();
-    if (!currentUser || !currentUser.alumni_id) {
+    const alumniId = currentUser?.alumni_id || currentUser?.id;
+    if (!currentUser || !alumniId) {
       alert("You must be logged in to request a referral.");
       return;
     }
@@ -98,7 +100,7 @@ export default function Jobs({ currentUser, onRegisterClick }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           job_id: activeJob.id,
-          requester_id: currentUser.alumni_id,
+          requester_id: alumniId,
           poster_id: activeJob.posted_by,
           message: referralMessage
         })

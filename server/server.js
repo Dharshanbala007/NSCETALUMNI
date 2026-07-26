@@ -230,6 +230,7 @@ app.post('/api/auth/login', async (req, res) => {
         token,
         user: { 
           id: alumniRecord.id,
+          alumni_id: alumniRecord.id,
           name: alumniRecord.name, 
           role: 'alumni',
           email: alumniRecord.email || 'Not Provided',

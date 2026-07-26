@@ -29,7 +29,8 @@ export default function Mentorship({ setView, currentUser }) {
 
   const handleRequestMatch = async (e) => {
     e.preventDefault();
-    if (!currentUser || !currentUser.alumni_id) {
+    const alumniId = currentUser?.alumni_id || currentUser?.id;
+    if (!currentUser || !alumniId) {
       alert("You must be logged in as an alumnus to request a match.");
       return;
     }
@@ -39,7 +40,7 @@ export default function Mentorship({ setView, currentUser }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          mentee_id: currentUser.alumni_id,
+          mentee_id: alumniId,
           message,
           field: selectedField
         })
