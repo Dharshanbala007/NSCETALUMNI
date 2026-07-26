@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Search, MapPin, Briefcase, UserCheck, Plus, X, Send, Check, FileText } from "lucide-react";
 import API_BASE from "../config";
 
-export default function Jobs({ currentUser }) {
+export default function Jobs({ currentUser, onRegisterClick }) {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -236,13 +236,15 @@ export default function Jobs({ currentUser }) {
             <FileText className="w-4 h-4" />
             <span>{resumeSkills.length > 0 ? `${resumeSkills.length} Skills Matched` : "Smart Match Resume"}</span>
           </button>
-          <button
-            onClick={() => setShowPostModal(true)}
-            className="bg-ink hover:bg-ink-muted text-surface hover:text-accent-gold text-xs font-bold uppercase tracking-wider py-3 px-5 rounded-xs transition-colors flex items-center justify-center gap-1.5 border border-ink"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Post a Job Opening</span>
-          </button>
+          {currentUser && (
+            <button
+              onClick={() => setShowPostModal(true)}
+              className="bg-ink hover:bg-ink-muted text-surface hover:text-accent-gold text-xs font-bold uppercase tracking-wider py-3 px-5 rounded-xs transition-colors flex items-center justify-center gap-1.5 border border-ink cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Post a Job Opening</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -327,10 +329,14 @@ export default function Jobs({ currentUser }) {
                   {job.referral_available ? (
                     <button
                       onClick={() => {
-                        setActiveJob(job);
-                        setShowReferralModal(true);
+                        if (!currentUser) {
+                          if (onRegisterClick) onRegisterClick();
+                        } else {
+                          setActiveJob(job);
+                          setShowReferralModal(true);
+                        }
                       }}
-                      className="bg-accent-emerald hover:bg-accent-emerald/90 text-surface text-[10px] font-bold uppercase tracking-wider py-2.5 px-4 rounded-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+                      className="bg-accent-emerald hover:bg-accent-emerald/90 text-surface text-[10px] font-bold uppercase tracking-wider py-2.5 px-4 rounded-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
                     >
                       <UserCheck className="w-4 h-4" />
                       <span>Request Referral</span>

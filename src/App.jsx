@@ -558,6 +558,7 @@ export default function App() {
                 mockJobs={mockJobs} 
                 setMockJobs={setMockJobs} 
                 currentUser={currentUser}
+                onRegisterClick={() => setShowRegistrationModal(true)}
               />
             )}
             {currentView === "mentorship" && (
