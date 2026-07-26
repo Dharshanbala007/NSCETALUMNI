@@ -15,7 +15,8 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 const config = process.env.DATABASE_URL 
   ? { 
       connectionString: process.env.DATABASE_URL, 
-      ssl: process.env.DATABASE_URL.includes('localhost') || process.env.DATABASE_URL.includes('127.0.0.1') ? false : { rejectUnauthorized: false } 
+      ssl: process.env.DATABASE_URL.includes('localhost') || process.env.DATABASE_URL.includes('127.0.0.1') ? false : { rejectUnauthorized: false },
+      connectionTimeoutMillis: 5000
     }
   : {
       host: process.env.PGHOST || 'localhost',
@@ -23,6 +24,7 @@ const config = process.env.DATABASE_URL
       user: process.env.PGUSER || 'postgres',
       password: process.env.PGPASSWORD || 'postgres',
       database: process.env.PGDATABASE || 'nscet_alumni',
+      connectionTimeoutMillis: 5000
     };
 
 console.log(`[Database] Attempting connection to PostgreSQL (${process.env.DATABASE_URL ? 'via DATABASE_URL' : `${config.host}:${config.port}`})...`);
