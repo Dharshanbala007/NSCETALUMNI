@@ -130,11 +130,27 @@ async function runImport(options = {}) {
 
   // 4. Load and Parse Excel Sheet
   try {
-    const excelPath = path.join(__dirname, '../cse alumnis details.xlsx');
-    if (!fs.existsSync(excelPath)) {
-      console.error(`❌ [Excel Import] File not found at: ${excelPath}`);
+    let excelPath = null;
+    const possiblePaths = [
+      path.join(__dirname, 'cse alumnis details.xlsx'),
+      path.join(__dirname, '../cse alumnis details.xlsx'),
+      path.join(process.cwd(), 'cse alumnis details.xlsx'),
+      path.join(process.cwd(), 'server/cse alumnis details.xlsx')
+    ];
+
+    for (const p of possiblePaths) {
+      if (fs.existsSync(p)) {
+        excelPath = p;
+        break;
+      }
+    }
+
+    if (!excelPath) {
+      console.error(`❌ [Excel Import] File not found in any expected location: ${possiblePaths.join(', ')}`);
       return;
     }
+
+    console.log(`📖 [Excel Import] Loading Excel file from: ${excelPath}`);
 
     const workbook = xlsx.readFile(excelPath);
     let totalImported = 0;
@@ -240,8 +256,8 @@ async function runImport(options = {}) {
             role,
             city,
             'India',
-            null, // No mock location coordinates
-            null, // No mock location coordinates
+            coords ? coords.lat : null,
+            coords ? coords.lng : null,
             bio,
             placed ? ['Software Engineering', 'Problem Solving'] : ['Learning'],
             [],

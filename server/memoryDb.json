@@ -11848,6 +11848,13 @@
       "password_hash": "$2b$10$HNe1WMNf2aDh4pPLIN3dFesReJw29CX/SxwvfP4rh2.rvLpZgsZn2",
       "role": "admin",
       "alumni_id": null
+    },
+    {
+      "id": 2,
+      "email": "admin@nscet.org",
+      "password_hash": "$2b$10$zLv5mK3.QOMuKQDCxhdnLuSVcOPlvrHGePEo.Wo8Clbf6mBdia9KC",
+      "role": "admin",
+      "alumni_id": null
     }
   ],
   "editRequests": [
@@ -11902,5 +11909,8 @@
       "status": "rejected",
       "created_at": "2026-07-09T01:22:20.658Z"
     }
-  ]
+  ],
+  "jobs": [],
+  "referralRequests": [],
+  "mentorshipRequests": []
 }
